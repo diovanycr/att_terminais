@@ -457,9 +457,20 @@ input[type="text"]::placeholder { color: var(--hint); }
       <div class="field-hint">A pasta <code>Futura</code> deve estar compartilhada no servidor</div>
     </div>
 
-    <div class="field">
-      <div class="field-label"><span>Pasta local</span></div>
-      <input type="text" id="pasta-input" value="C:\FUTURA" oninput="updatePreview()" />
+    <div class="toggle-row" style="border-top:none; padding-top:0; margin-bottom:4px;" onclick="togglePastaCustom()">
+      <div class="toggle-info">
+        <span>Usar pasta padrão <code style="font-size:12px;background:var(--bg);padding:1px 5px;border-radius:4px;border:1px solid var(--border)">C:\FUTURA</code></span>
+        <small>Desative para escolher outro caminho</small>
+      </div>
+      <div class="toggle-switch on" id="toggle-pasta"></div>
+    </div>
+
+    <div id="pasta-custom-field" class="field" style="display:none; margin-top:12px;">
+      <div class="field-label">
+        <span>Pasta personalizada</span>
+      </div>
+      <input type="text" id="pasta-input" value="C:\FUTURA" oninput="updatePreview()" placeholder="Ex: C:\SistemaFutura" />
+      <div class="field-hint">Informe o caminho completo onde o terminal será instalado</div>
     </div>
 
     <div class="preview" id="preview-box">
@@ -599,9 +610,30 @@ input[type="text"]::placeholder { color: var(--hint); }
     );
   }
 
-  let dlls = true, dllsUpd = true;
+  let dlls = true, dllsUpd = true, pastaCustom = false;
+
   function toggleDlls()    { dlls    = !dlls;    document.getElementById('toggle-dlls').classList.toggle('on', dlls); }
   function toggleDllsUpd() { dllsUpd = !dllsUpd; document.getElementById('toggle-dlls-upd').classList.toggle('on', dllsUpd); }
+
+  function togglePastaCustom() {
+    pastaCustom = !pastaCustom;
+    document.getElementById('toggle-pasta').classList.toggle('on', !pastaCustom);
+    const field = document.getElementById('pasta-custom-field');
+    if (pastaCustom) {
+      field.style.display = 'block';
+      field.style.animation = 'up 0.2s ease';
+      document.getElementById('pasta-input').focus();
+    } else {
+      field.style.display = 'none';
+      document.getElementById('pasta-input').value = 'C:\\FUTURA';
+    }
+    updatePreview();
+  }
+
+  function getPasta() {
+    if (!pastaCustom) return 'C:\\FUTURA';
+    return document.getElementById('pasta-input').value.trim() || 'C:\\FUTURA';
+  }
 
   function updatePreview() {
     const srv   = document.getElementById('servidor-input').value.trim();
@@ -640,7 +672,7 @@ input[type="text"]::placeholder { color: var(--hint); }
 
   async function simularCriacao() {
     const srv   = document.getElementById('servidor-input').value.trim();
-    const pasta = document.getElementById('pasta-input').value.trim() || 'C:\\FUTURA';
+    const pasta = getPasta();
     const eErr  = document.getElementById('alert-criar');
     const eOk   = document.getElementById('alert-ok-criar');
     eErr.classList.remove('visible'); eOk.classList.remove('visible');
@@ -758,6 +790,7 @@ input[type="text"]::placeholder { color: var(--hint); }
     document.getElementById('alert-ok-criar').classList.remove('visible');
     for (let i=1;i<=5;i++) document.getElementById('s'+i).className = i===1?'step active':'step';
     if (!dlls) toggleDlls();
+    if (pastaCustom) togglePastaCustom();
   }
 
   function resetUpd() {
