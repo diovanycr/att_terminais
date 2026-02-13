@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Futura — Gerenciamento de Terminais</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:       #f7f7f5;
+  --surface:  #ffffff;
+  --border:   #e4e4e0;
+  --border2:  #d0d0cc;
+  --text:     #1a1a18;
+  --sub:      #6b6b66;
+  --hint:     #a0a09a;
+  --accent:   #2563eb;
+  --accent-l: #eff4ff;
+  --green:    #16a34a;
+  --green-l:  #f0fdf4;
+  --amber:    #d97706;
+  --red:      #dc2626;
+  --red-l:    #fef2f2;
+  --radius:   8px;
+}
+
+html { font-size: 15px; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 400;
+  line-height: 1.5;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+.page {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 56px 24px 80px;
+}
+
+/* -- Header -- */
+.header {
+  margin-bottom: 48px;
+  animation: up 0.4s ease both;
+}
+.header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+.wordmark {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--sub);
+}
+.clock {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  color: var(--hint);
+}
+h1 {
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  line-height: 1.2;
+}
+h1 span { color: var(--accent); }
+.subtitle {
+  font-size: 14px;
+  color: var(--sub);
+  margin-top: 4px;
+}
+
+/* -- Tabs -- */
+.tabs {
+  display: flex;
+  gap: 2px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 32px;
+  animation: up 0.4s 0.05s ease both;
+}
+.tab {
+  padding: 10px 16px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--sub);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color 0.15s;
+  user-select: none;
+  white-space: nowrap;
+}
+.tab:hover { color: var(--text); }
+.tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+/* -- Panel -- */
+.panel { display: none; animation: up 0.25s ease both; }
+.panel.active { display: block; }
+@keyframes up { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform:none; } }
+
+/* -- Section label -- */
+.label {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--hint);
+  margin-bottom: 20px;
+}
+
+/* -- Field -- */
+.field { margin-bottom: 20px; }
+.field-label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+.field-label span {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--text);
+}
+.field-label small {
+  font-size: 12px;
+  color: var(--hint);
+}
+input[type="text"] {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  padding: 10px 14px;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+input[type="text"]:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+}
+input[type="text"]::placeholder { color: var(--hint); }
+.field-hint {
+  font-size: 12px;
+  color: var(--hint);
+  margin-top: 5px;
+  padding-left: 2px;
+}
+
+/* -- Preview card -- */
+.preview {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 20px;
+  display: none;
+}
+.preview-row {
+  display: flex;
+  gap: 12px;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.preview-row:last-child { border-bottom: none; }
+.preview-key {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--hint);
+  min-width: 100px;
+  padding-top: 1px;
+}
+.preview-val {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  color: var(--sub);
+  word-break: break-all;
+}
+
+/* -- Toggle -- */
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0;
+  border-top: 1px solid var(--border);
+  cursor: pointer;
+  user-select: none;
+}
+.toggle-info span {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--text);
+  display: block;
+}
+.toggle-info small {
+  font-size: 12px;
+  color: var(--hint);
+}
+.toggle-switch {
+  width: 36px; height: 20px;
+  background: var(--border2);
+  border-radius: 10px;
+  position: relative;
+  flex-shrink: 0;
+  transition: background 0.2s;
+}
+.toggle-switch::after {
+  content: '';
+  position: absolute;
+  top: 3px; left: 3px;
+  width: 14px; height: 14px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  transition: transform 0.2s;
+}
+.toggle-switch.on { background: var(--accent); }
+.toggle-switch.on::after { transform: translateX(16px); }
+
+/* -- Buttons -- */
+.btn-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+}
+.btn {
+  padding: 10px 20px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13.5px;
+  font-weight: 500;
+  border-radius: var(--radius);
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s;
+}
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+  flex: 1;
+}
+.btn-primary:hover { background: #1d4ed8; }
+.btn-primary:active { transform: scale(0.98); }
+.btn-primary:disabled {
+  background: var(--border2);
+  color: var(--hint);
+  cursor: default;
+  transform: none;
+}
+.btn-success {
+  background: var(--green);
+  color: #fff;
+  flex: 1;
+}
+.btn-success:hover { background: #15803d; }
+.btn-success:active { transform: scale(0.98); }
+.btn-success:disabled {
+  background: var(--border2);
+  color: var(--hint);
+  cursor: default;
+  transform: none;
+}
+.btn-ghost {
+  background: transparent;
+  color: var(--sub);
+  border: 1px solid var(--border);
+  padding: 10px 16px;
+}
+.btn-ghost:hover { border-color: var(--border2); color: var(--text); }
+
+/* -- Progress -- */
+.progress-wrap {
+  background: var(--border);
+  border-radius: 4px;
+  height: 3px;
+  margin: 20px 0 0;
+  overflow: hidden;
+  display: none;
+}
+.progress-bar {
+  height: 100%;
+  background: var(--accent);
+  width: 0%;
+  transition: width 0.5s ease;
+  border-radius: 4px;
+}
+.progress-bar.green { background: var(--green); }
+
+/* -- Alert -- */
+.alert {
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  font-size: 13px;
+  line-height: 1.5;
+  margin-top: 16px;
+  display: none;
+}
+.alert.visible { display: block; animation: up 0.2s ease; }
+.alert-err  { background: var(--red-l);   color: var(--red);   border: 1px solid #fecaca; }
+.alert-ok   { background: var(--green-l); color: var(--green); border: 1px solid #bbf7d0; }
+
+/* -- Log -- */
+.log-area {
+  margin-top: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  line-height: 2;
+  min-height: 180px;
+  max-height: 280px;
+  overflow-y: auto;
+  display: none;
+}
+.log-area.visible { display: block; animation: up 0.2s ease; }
+.log-line { display: flex; gap: 10px; align-items: baseline; }
+.log-line .ts  { color: var(--hint); white-space: nowrap; font-size: 11px; }
+.log-line .dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; margin-top: 6px; }
+.log-line .msg { color: var(--sub); font-size: 12px; }
+.INFO    .dot { background: var(--border2); }
+.SUCESSO .dot { background: var(--green); }
+.SUCESSO .msg { color: var(--green); }
+.AVISO   .dot { background: var(--amber); }
+.AVISO   .msg { color: var(--amber); }
+.ERRO    .dot { background: var(--red); }
+.ERRO    .msg { color: var(--red); }
+
+/* -- Steps -- */
+.steps {
+  display: flex;
+  gap: 0;
+  margin-bottom: 28px;
+}
+.step {
+  flex: 1;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--hint);
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--border);
+  transition: color 0.2s, border-color 0.2s;
+}
+.step.done   { color: var(--green);  border-color: var(--green); }
+.step.active { color: var(--accent); border-color: var(--accent); }
+
+/* -- Info table -- */
+.info-table {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 28px;
+}
+.info-row {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+}
+.info-row:last-child { border-bottom: none; }
+.info-k {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--hint);
+  padding: 10px 14px;
+  min-width: 160px;
+  border-right: 1px solid var(--border);
+  background: var(--bg);
+}
+.info-v {
+  font-size: 13px;
+  color: var(--sub);
+  padding: 10px 14px;
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+}
+
+/* -- Divider -- */
+.divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 32px 0;
+}
+
+/* -- Scrollbar -- */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+@media (max-width: 520px) {
+  h1 { font-size: 22px; }
+  .tabs { overflow-x: auto; }
+  .step { font-size: 10px; }
+  .info-k { min-width: 120px; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="header">
+    <div class="header-top">
+      <div class="wordmark">Futura Sistemas</div>
+      <div class="clock" id="clock"></div>
+    </div>
+    <h1>Gerenciamento de <span>Terminais</span></h1>
+    <p class="subtitle">Criar ou atualizar terminais locais</p>
+  </header>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab(1)">Criar terminal</div>
+    <div class="tab" onclick="switchTab(2)">Atualizar terminal</div>
+    <div class="tab" onclick="switchTab(0)">Documentação</div>
+  </div>
+
+  <!-- CRIAR -->
+  <div class="panel active" id="panel-1">
+    <div class="steps">
+      <div class="step active" id="s1">Servidor</div>
+      <div class="step" id="s2">Pastas</div>
+      <div class="step" id="s3">Arquivos</div>
+      <div class="step" id="s4">DLLs</div>
+      <div class="step" id="s5">Pronto</div>
+    </div>
+
+    <div class="alert alert-err" id="alert-criar"></div>
+    <div class="alert alert-ok"  id="alert-ok-criar"></div>
+
+    <div class="field">
+      <div class="field-label">
+        <span>Servidor</span>
+        <small>nome de máquina ou IP</small>
+      </div>
+      <input type="text" id="servidor-input" placeholder="192.168.1.100" oninput="updatePreview()" />
+      <div class="field-hint">A pasta <code>Futura</code> deve estar compartilhada no servidor</div>
+    </div>
+
+    <div class="field">
+      <div class="field-label"><span>Pasta local</span></div>
+      <input type="text" id="pasta-input" value="C:\FUTURA" oninput="updatePreview()" />
+    </div>
+
+    <div class="preview" id="preview-box">
+      <div class="preview-row">
+        <div class="preview-key">caminho</div>
+        <div class="preview-val" id="prev-srv"></div>
+      </div>
+      <div class="preview-row">
+        <div class="preview-key">Futura.ini</div>
+        <div class="preview-val" id="prev-ini"></div>
+      </div>
+      <div class="preview-row">
+        <div class="preview-key">executáveis</div>
+        <div class="preview-val">FuturaServer.exe, PDV.exe</div>
+      </div>
+    </div>
+
+    <div class="toggle-row" onclick="toggleDlls()">
+      <div class="toggle-info">
+        <span>Baixar DLLs</span>
+        <small>DLLx86.zip — repositorio.futurasistemas.com.br</small>
+      </div>
+      <div class="toggle-switch on" id="toggle-dlls"></div>
+    </div>
+
+    <div class="progress-wrap" id="prog-criar">
+      <div class="progress-bar" id="prog-bar-criar"></div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="resetCriar()">Limpar</button>
+      <button class="btn btn-primary" id="btn-criar" onclick="simularCriacao()">Criar terminal</button>
+    </div>
+
+    <div class="log-area" id="log-criar"></div>
+  </div>
+
+  <!-- ATUALIZAR -->
+  <div class="panel" id="panel-2">
+    <div class="steps">
+      <div class="step active" id="u1">Verificar</div>
+      <div class="step" id="u2">Conectar</div>
+      <div class="step" id="u3">EXEs</div>
+      <div class="step" id="u4">DLLs</div>
+      <div class="step" id="u5">Pronto</div>
+    </div>
+
+    <div class="alert alert-err" id="alert-upd"></div>
+    <div class="alert alert-ok"  id="alert-ok-upd"></div>
+
+    <div class="field">
+      <div class="field-label"><span>Pasta do terminal</span></div>
+      <input type="text" id="pasta-upd-input" value="C:\FUTURA" />
+      <div class="field-hint">Deve conter <code>Futura.ini</code> com <code>DADOS_IP</code> configurado</div>
+    </div>
+
+    <div class="info-table">
+      <div class="info-row"><div class="info-k">Futura.ini</div><div class="info-v">lido automaticamente — extrai DADOS_IP</div></div>
+      <div class="info-row"><div class="info-k">executáveis</div><div class="info-v">FuturaServer.exe, PDV.exe</div></div>
+      <div class="info-row"><div class="info-k">configuração</div><div class="info-v">mantida intacta, não sobrescrita</div></div>
+    </div>
+
+    <div class="toggle-row" onclick="toggleDllsUpd()">
+      <div class="toggle-info">
+        <span>Atualizar DLLs</span>
+        <small>Sobrescreve com versão mais recente do repositório</small>
+      </div>
+      <div class="toggle-switch on" id="toggle-dlls-upd"></div>
+    </div>
+
+    <div class="progress-wrap" id="prog-upd">
+      <div class="progress-bar green" id="prog-bar-upd"></div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="resetUpd()">Limpar</button>
+      <button class="btn btn-success" id="btn-upd" onclick="simularAtualizacao()">Atualizar terminal</button>
+    </div>
+
+    <div class="log-area" id="log-upd"></div>
+  </div>
+
+  <!-- DOCS -->
+  <div class="panel" id="panel-0">
+    <p class="label">Referência do script</p>
+    <div class="info-table" style="margin-bottom:20px">
+      <div class="info-row"><div class="info-k">arquivo</div><div class="info-v">Gerenciar-Terminal-Futura.ps1</div></div>
+      <div class="info-row"><div class="info-k">launcher</div><div class="info-v">Gerenciar-Terminal-Futura.bat</div></div>
+      <div class="info-row"><div class="info-k">parâmetros</div><div class="info-v">-PastaFutura "C:\FUTURA" [-Silencioso]</div></div>
+      <div class="info-row"><div class="info-k">requisito</div><div class="info-v">PowerShell 5.1+ · Windows 7+</div></div>
+    </div>
+
+    <hr class="divider">
+    <p class="label">Opção 1 — Criar terminal</p>
+    <div class="info-table" style="margin-bottom:20px">
+      <div class="info-row"><div class="info-k">passo 1</div><div class="info-v">Cria C:\FUTURA e C:\FUTURA\Backup_Atualizacao</div></div>
+      <div class="info-row"><div class="info-k">passo 2</div><div class="info-v">Testa acesso a \\SERVIDOR\Futura via SMB</div></div>
+      <div class="info-row"><div class="info-k">passo 3</div><div class="info-v">Copia Futura.ini, FuturaServer.exe, PDV.exe</div></div>
+      <div class="info-row"><div class="info-k">passo 3b</div><div class="info-v">Atualiza DADOS_IP= no Futura.ini</div></div>
+      <div class="info-row"><div class="info-k">passo 4</div><div class="info-v">Download DLLx86.zip ? extrai para C:\FUTURA</div></div>
+      <div class="info-row"><div class="info-k">log</div><div class="info-v">C:\FUTURA\instalacao_futura.log</div></div>
+    </div>
+
+    <hr class="divider">
+    <p class="label">Opção 2 — Atualizar terminal</p>
+    <div class="info-table" style="margin-bottom:20px">
+      <div class="info-row"><div class="info-k">pré-condição</div><div class="info-v">C:\FUTURA e Futura.ini devem existir</div></div>
+      <div class="info-row"><div class="info-k">leitura ini</div><div class="info-v">Extrai DADOS_IP para localizar servidor</div></div>
+      <div class="info-row"><div class="info-k">atualização</div><div class="info-v">Sobrescreve FuturaServer.exe e PDV.exe</div></div>
+      <div class="info-row"><div class="info-k">dlls</div><div class="info-v">Re-download e extração de DLLx86.zip</div></div>
+      <div class="info-row"><div class="info-k">config</div><div class="info-v">Futura.ini não é alterado</div></div>
+    </div>
+
+    <hr class="divider">
+    <p class="label">Funções principais</p>
+    <div class="info-table">
+      <div class="info-row"><div class="info-k">New-TerminalLocal</div><div class="info-v">Criação completa do terminal</div></div>
+      <div class="info-row"><div class="info-k">Update-TerminalLocal</div><div class="info-v">Atualização de terminal existente</div></div>
+      <div class="info-row"><div class="info-k">Download-ExtractDlls</div><div class="info-v">Download + validação + extração do ZIP</div></div>
+      <div class="info-row"><div class="info-k">Get-ServidorDoIni</div><div class="info-v">Lê DADOS_IP do Futura.ini</div></div>
+      <div class="info-row"><div class="info-k">Write-Log</div><div class="info-v">Log colorido + arquivo UTF-8</div></div>
+    </div>
+  </div>
+
+</div>
+<script>
+  function tick() {
+    document.getElementById('clock').textContent =
+      new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+  }
+  tick(); setInterval(tick, 1000);
+
+  function switchTab(n) {
+    document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', i === n));
+    ['panel-0','panel-1','panel-2'].forEach((id, i) =>
+      document.getElementById(id).classList.toggle('active', i === n)
+    );
+  }
+
+  let dlls = true, dllsUpd = true;
+  function toggleDlls()    { dlls    = !dlls;    document.getElementById('toggle-dlls').classList.toggle('on', dlls); }
+  function toggleDllsUpd() { dllsUpd = !dllsUpd; document.getElementById('toggle-dlls-upd').classList.toggle('on', dllsUpd); }
+
+  function updatePreview() {
+    const srv   = document.getElementById('servidor-input').value.trim();
+    const box   = document.getElementById('preview-box');
+    if (srv) {
+      document.getElementById('prev-srv').textContent = `\\\\${srv}\\Futura`;
+      document.getElementById('prev-ini').textContent = `DADOS_IP=${srv}`;
+      box.style.display = 'block';
+    } else {
+      box.style.display = 'none';
+    }
+  }
+
+  const delay = ms => new Promise(r => setTimeout(r, ms));
+
+  function log(areaId, tipo, msg) {
+    const area = document.getElementById(areaId);
+    area.classList.add('visible');
+    const ts = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    const line = document.createElement('div');
+    line.className = `log-line ${tipo}`;
+    line.innerHTML = `<span class="ts">${ts}</span><span class="dot"></span><span class="msg">${msg}</span>`;
+    area.appendChild(line);
+    area.scrollTop = area.scrollHeight;
+  }
+
+  function setStep(prefix, idx) {
+    for (let i = 1; i <= 5; i++) {
+      const el = document.getElementById(prefix + i);
+      if (!el) continue;
+      el.className = i < idx ? 'step done' : i === idx ? 'step active' : 'step';
+    }
+  }
+
+  function prog(barId, pct) { document.getElementById(barId).style.width = pct + '%'; }
+
+  async function simularCriacao() {
+    const srv   = document.getElementById('servidor-input').value.trim();
+    const pasta = document.getElementById('pasta-input').value.trim() || 'C:\\FUTURA';
+    const eErr  = document.getElementById('alert-criar');
+    const eOk   = document.getElementById('alert-ok-criar');
+    eErr.classList.remove('visible'); eOk.classList.remove('visible');
+
+    if (!srv) {
+      eErr.textContent = 'Informe o nome ou IP do servidor para continuar.';
+      eErr.classList.add('visible'); return;
+    }
+
+    const btn = document.getElementById('btn-criar');
+    btn.disabled = true; btn.textContent = 'Processando…';
+    document.getElementById('log-criar').innerHTML = '';
+    document.getElementById('prog-criar').style.display = 'block';
+    prog('prog-bar-criar', 0);
+
+    log('log-criar','INFO','Iniciando criação do terminal');
+    await delay(300);
+
+    setStep('s', 2); prog('prog-bar-criar', 12);
+    log('log-criar','INFO','Criando estrutura de pastas');
+    await delay(400);
+    log('log-criar','SUCESSO',`${pasta} criado`);
+    await delay(250);
+    log('log-criar','SUCESSO',`${pasta}\\Backup_Atualizacao criado`);
+
+    prog('prog-bar-criar', 28);
+    await delay(400);
+    log('log-criar','INFO',`Testando conexão com \\\\${srv}\\Futura`);
+    await delay(700);
+    log('log-criar','SUCESSO','Servidor acessível');
+
+    setStep('s', 3); prog('prog-bar-criar', 48);
+    log('log-criar','INFO','Copiando arquivos do servidor');
+    for (const f of ['Futura.ini','FuturaServer.exe','PDV.exe']) {
+      await delay(320); log('log-criar','SUCESSO',`${f} copiado`);
+    }
+    await delay(250);
+    log('log-criar','SUCESSO',`DADOS_IP atualizado ? ${srv}`);
+
+    setStep('s', 4); prog('prog-bar-criar', 65);
+    if (dlls) {
+      log('log-criar','INFO','Baixando DLLx86.zip');
+      await delay(900);
+      log('log-criar','SUCESSO','Download concluído — 8.5 MB');
+      await delay(350);
+      log('log-criar','SUCESSO','47 arquivos extraídos');
+    } else {
+      log('log-criar','INFO','Download de DLLs ignorado');
+    }
+
+    setStep('s', 5); prog('prog-bar-criar', 100);
+    await delay(350);
+    log('log-criar','SUCESSO','Terminal criado com sucesso');
+    eOk.textContent = `Terminal criado em ${pasta}. Servidor: ${srv}.`;
+    eOk.classList.add('visible');
+    btn.disabled = false; btn.textContent = 'Criar terminal';
+  }
+
+  async function simularAtualizacao() {
+    const pasta = document.getElementById('pasta-upd-input').value.trim() || 'C:\\FUTURA';
+    const eErr  = document.getElementById('alert-upd');
+    const eOk   = document.getElementById('alert-ok-upd');
+    eErr.classList.remove('visible'); eOk.classList.remove('visible');
+
+    const btn = document.getElementById('btn-upd');
+    btn.disabled = true; btn.textContent = 'Processando…';
+    document.getElementById('log-upd').innerHTML = '';
+    document.getElementById('prog-upd').style.display = 'block';
+    prog('prog-bar-upd', 0);
+
+    log('log-upd','INFO','Verificando terminal existente');
+    await delay(400);
+    log('log-upd','SUCESSO',`${pasta} encontrado`);
+    await delay(250);
+    log('log-upd','SUCESSO','Futura.ini localizado');
+
+    setStep('u', 2); prog('prog-bar-upd', 22);
+    log('log-upd','INFO','Lendo DADOS_IP do Futura.ini');
+    await delay(400);
+    log('log-upd','SUCESSO','Servidor: 192.168.1.100');
+    await delay(500);
+    log('log-upd','SUCESSO','Conexão estabelecida');
+
+    setStep('u', 3); prog('prog-bar-upd', 50);
+    log('log-upd','INFO','Atualizando executáveis');
+    for (const exe of ['FuturaServer.exe','PDV.exe']) {
+      await delay(350); log('log-upd','SUCESSO',`${exe} atualizado`);
+    }
+
+    setStep('u', 4); prog('prog-bar-upd', 70);
+    if (dllsUpd) {
+      log('log-upd','INFO','Baixando DLLx86.zip');
+      await delay(900);
+      log('log-upd','SUCESSO','DLLs atualizadas — 47 arquivos');
+    } else {
+      log('log-upd','INFO','Atualização de DLLs ignorada');
+    }
+
+    setStep('u', 5); prog('prog-bar-upd', 100);
+    await delay(350);
+    log('log-upd','SUCESSO','Atualização concluída');
+    eOk.textContent = `Terminal em ${pasta} atualizado com sucesso.`;
+    eOk.classList.add('visible');
+    btn.disabled = false; btn.textContent = 'Atualizar terminal';
+  }
+
+  function resetCriar() {
+    document.getElementById('servidor-input').value = '';
+    document.getElementById('pasta-input').value = 'C:\\FUTURA';
+    document.getElementById('preview-box').style.display = 'none';
+    document.getElementById('log-criar').innerHTML = '';
+    document.getElementById('log-criar').classList.remove('visible');
+    document.getElementById('prog-criar').style.display = 'none';
+    document.getElementById('alert-criar').classList.remove('visible');
+    document.getElementById('alert-ok-criar').classList.remove('visible');
+    for (let i=1;i<=5;i++) document.getElementById('s'+i).className = i===1?'step active':'step';
+    if (!dlls) toggleDlls();
+  }
+
+  function resetUpd() {
+    document.getElementById('pasta-upd-input').value = 'C:\\FUTURA';
+    document.getElementById('log-upd').innerHTML = '';
+    document.getElementById('log-upd').classList.remove('visible');
+    document.getElementById('prog-upd').style.display = 'none';
+    document.getElementById('alert-upd').classList.remove('visible');
+    document.getElementById('alert-ok-upd').classList.remove('visible');
+    for (let i=1;i<=5;i++) document.getElementById('u'+i).className = i===1?'step active':'step';
+    if (!dllsUpd) toggleDllsUpd();
+  }
+</script>
+</body>
+</html>
