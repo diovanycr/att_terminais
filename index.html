@@ -469,7 +469,7 @@ input[type="text"]::placeholder { color: var(--hint); }
       <div class="field-label">
         <span>Pasta personalizada</span>
       </div>
-      <input type="text" id="pasta-input" value="C:\FUTURA" oninput="updatePreview()" placeholder="Ex: C:\SistemaFutura" />
+      <input type="text" id="pasta-input" value="" oninput="updatePreview()" placeholder="Ex: C:\SistemaFutura" />
       <div class="field-hint">Informe o caminho completo onde o terminal será instalado</div>
     </div>
 
@@ -477,6 +477,10 @@ input[type="text"]::placeholder { color: var(--hint); }
       <div class="preview-row">
         <div class="preview-key">caminho</div>
         <div class="preview-val" id="prev-srv"></div>
+      </div>
+      <div class="preview-row">
+        <div class="preview-key">pasta local</div>
+        <div class="preview-val" id="prev-pasta"></div>
       </div>
       <div class="preview-row">
         <div class="preview-key">Futura.ini</div>
@@ -625,22 +629,25 @@ input[type="text"]::placeholder { color: var(--hint); }
       document.getElementById('pasta-input').focus();
     } else {
       field.style.display = 'none';
-      document.getElementById('pasta-input').value = 'C:\\FUTURA';
+      document.getElementById('pasta-input').value = '';
     }
     updatePreview();
   }
 
   function getPasta() {
     if (!pastaCustom) return 'C:\\FUTURA';
-    return document.getElementById('pasta-input').value.trim() || 'C:\\FUTURA';
+    const v = document.getElementById('pasta-input').value.trim();
+    return v || 'C:\\FUTURA';
   }
 
   function updatePreview() {
     const srv   = document.getElementById('servidor-input').value.trim();
+    const pasta = getPasta();
     const box   = document.getElementById('preview-box');
     if (srv) {
-      document.getElementById('prev-srv').textContent = `\\\\${srv}\\Futura`;
-      document.getElementById('prev-ini').textContent = `DADOS_IP=${srv}`;
+      document.getElementById('prev-srv').textContent   = `\\\\${srv}\\Futura`;
+      document.getElementById('prev-pasta').textContent = pasta;
+      document.getElementById('prev-ini').textContent   = `DADOS_IP=${srv}`;
       box.style.display = 'block';
     } else {
       box.style.display = 'none';
@@ -781,7 +788,7 @@ input[type="text"]::placeholder { color: var(--hint); }
 
   function resetCriar() {
     document.getElementById('servidor-input').value = '';
-    document.getElementById('pasta-input').value = 'C:\\FUTURA';
+    document.getElementById('pasta-input').value = '';
     document.getElementById('preview-box').style.display = 'none';
     document.getElementById('log-criar').innerHTML = '';
     document.getElementById('log-criar').classList.remove('visible');
